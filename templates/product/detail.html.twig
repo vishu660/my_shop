@@ -1,0 +1,385 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name|default('Product') }} | MyShop{% endblock %}
+
+{% block body %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="bg-light py-3">
+  <div class="container">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href="/products">Products</a></li>
+      <li class="breadcrumb-item"><a href="#">{{ product.category|default('Electronics') }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ product.name|default('Product') }}</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="container py-5">
+  <div class="row">
+    
+    <!-- Product Images -->
+    <div class="col-lg-6">
+      <div class="product-image-container mb-4">
+        <!-- Main Image -->
+        <div class="main-image mb-3 text-center">
+          <img src="{{ product.image|default('https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') }}" 
+               class="img-fluid rounded-3 shadow-sm" 
+               id="mainImage"
+               alt="{{ product.name|default('Product') }}"
+               style="max-height: 500px; object-fit: contain;">
+        </div>
+        
+        <!-- Thumbnail Images -->
+        <div class="thumbnail-images d-flex justify-content-center gap-2">
+          {% for i in 1..3 %}
+          <div class="thumbnail border rounded p-1 {{ loop.first ? 'active' : '' }}" style="cursor: pointer;">
+            <img src="{{ (product.images[i-1] is defined ? product.images[i-1])|default('https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=' ~ i) }}" 
+                 class="img-fluid rounded" 
+                 width="80" 
+                 onclick="changeImage(this.src, this)">
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-lg-6">
+      <!-- Product Header -->
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h1 class="fw-bold mb-1">{{ product.name|default('Product Name') }}</h1>
+            <div class="text-muted mb-2">
+              <span class="badge bg-light text-dark">{{ product.category|default('Electronics') }}</span>
+              {% if product.brand|default(false) %}
+                <span class="badge bg-light text-dark ms-2">{{ product.brand }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <button class="btn btn-outline-danger btn-sm rounded-circle">
+            <i class="bi bi-heart"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Rating -->
+      <div class="mb-3">
+        <div class="d-flex align-items-center">
+          <div class="text-warning me-2">
+            {% set rating = product.rating|default(4.5) %}
+            {% for i in 1..5 %}
+              {% if i <= rating %}
+                <i class="bi bi-star-fill"></i>
+              {% elseif i - 0.5 <= rating %}
+                <i class="bi bi-star-half"></i>
+              {% else %}
+                <i class="bi bi-star"></i>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <span class="me-3">{{ rating }}</span>
+          <span class="text-muted">({{ product.reviews|default('125') }} reviews)</span>
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="mb-4">
+        {% if product.originalPrice|default(false) and product.originalPrice > product.price|default(0) %}
+          <div class="d-flex align-items-center">
+            <h2 class="text-success fw-bold mb-0">₹{{ product.price|default('9999') }}</h2>
+            <span class="text-decoration-line-through text-muted fs-5 ms-3">₹{{ product.originalPrice }}</span>
+            {% set discount = ((product.originalPrice - product.price) / product.originalPrice * 100)|round %}
+            <span class="badge bg-danger ms-2">Save {{ discount }}%</span>
+          </div>
+        {% else %}
+          <h2 class="text-success fw-bold">₹{{ product.price|default('9999') }}</h2>
+        {% endif %}
+        <p class="text-muted small mb-0">Inclusive of all taxes</p>
+      </div>
+
+      <!-- Product Info -->
+      <div class="mb-4">
+        <h5 class="mb-3">Product Details</h5>
+        <p class="mb-4">{{ product.description|default('Premium quality product with latest features and technology.') }}</p>
+        
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <ul class="list-unstyled">
+              {% for feature in product.features|default(['Free Shipping', '1 Year Warranty', '7-Day Returns']) %}
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> {{ feature }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <ul class="list-unstyled">
+              {% for feature in product.additionalFeatures|default(['Cash on Delivery', 'EMI Available', 'Genuine Products']) %}
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> {{ feature }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quantity & Actions -->
+      <div class="card border-0 bg-light p-4 mb-4 rounded-3">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Quantity</label>
+          <div class="d-flex align-items-center" style="max-width: 150px;">
+            <button class="btn btn-outline-secondary" onclick="updateQuantity(-1)">
+              <i class="bi bi-dash"></i>
+            </button>
+            <input type="text" class="form-control text-center mx-2" value="1" id="quantity">
+            <button class="btn btn-outline-secondary" onclick="updateQuantity(1)">
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <a href="/cart/add/{{ product.id|default('1') }}" class="btn btn-success btn-lg">
+            <i class="bi bi-cart-plus me-2"></i> Add to Cart
+          </a>
+          <a href="/checkout" class="btn btn-primary btn-lg">
+            <i class="bi bi-lightning me-2"></i> Buy Now
+          </a>
+          <a href="/products" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i> Back to Products
+          </a>
+        </div>
+      </div>
+
+      <!-- Delivery Info -->
+      <div class="alert alert-info">
+        <div class="d-flex">
+          <i class="bi bi-truck fs-4 me-3"></i>
+          <div>
+            <strong>{{ product.deliveryInfo|default('Free Delivery') }}</strong>
+            <p class="mb-0 small">{{ product.deliveryTime|default('Delivery in 3-5 business days') }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Section -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <ul class="nav nav-tabs" id="productTabs">
+        <li class="nav-item">
+          <a class="nav-link active" data-bs-toggle="tab" href="#description">Description</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#specifications">Specifications</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#reviews">Reviews</a>
+        </li>
+      </ul>
+      
+      <div class="tab-content p-4 border border-top-0 rounded-bottom">
+        <!-- Description Tab -->
+        <div class="tab-pane fade show active" id="description">
+          <h5>About this product</h5>
+          <p>{{ product.fullDescription|default(product.description|default('This premium product offers exceptional quality and performance. Designed with the latest technology, it provides reliable performance and durability. Perfect for both personal and professional use.')) }}</p>
+          <ul>
+            {% for point in product.keyPoints|default(['High-quality materials and construction', 'Latest features and technology', 'Energy efficient design', 'Easy to use and maintain', 'Backed by manufacturer warranty']) %}
+              <li>{{ point }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        
+        <!-- Specifications Tab -->
+        <div class="tab-pane fade" id="specifications">
+          <h5>Technical Specifications</h5>
+          <table class="table">
+            <tbody>
+              {% set defaultSpecs = {
+                'Brand': product.brand|default('Premium Brand'),
+                'Model': product.model|default('XYZ-2023'),
+                'Color': product.color|default('Black'),
+                'Warranty': product.warranty|default('1 Year Manufacturer Warranty')
+              } %}
+              
+              {% set specs = product.specifications|default(defaultSpecs) %}
+              
+              {% if specs is iterable %}
+                {% for key, value in specs %}
+                  <tr>
+                    <th width="200">{{ key }}</th>
+                    <td>{{ value }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <!-- Fallback if specs is not iterable -->
+                {% for key, value in defaultSpecs %}
+                  <tr>
+                    <th width="200">{{ key }}</th>
+                    <td>{{ value }}</td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Reviews Tab -->
+        <div class="tab-pane fade" id="reviews">
+          <h5>Customer Reviews</h5>
+          <div class="mb-4">
+            <div class="d-flex align-items-center mb-3">
+              <h2 class="fw-bold mb-0 me-3">{{ product.rating|default(4.5) }}</h2>
+              <div>
+                <div class="text-warning">
+                  {% for i in 1..5 %}
+                    {% if i <= (product.rating|default(4.5)) %}
+                      <i class="bi bi-star-fill"></i>
+                    {% elseif i - 0.5 <= (product.rating|default(4.5)) %}
+                      <i class="bi bi-star-half"></i>
+                    {% else %}
+                      <i class="bi bi-star"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <p class="text-muted small mb-0">Based on {{ product.reviews|default('125') }} reviews</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sample Review -->
+          {% if product.sampleReviews|default([])|length > 0 %}
+            {% for review in product.sampleReviews %}
+              <div class="border-top pt-3 {{ not loop.first ? 'mt-3' : '' }}">
+                <div class="d-flex mb-2">
+                  <div class="text-warning small">
+                    {% for i in 1..5 %}
+                      <i class="bi bi-star{{ i <= (review.rating|default(5)) ? '-fill' : '' }}"></i>
+                    {% endfor %}
+                  </div>
+                  <span class="ms-2 fw-bold">{{ review.title|default('Great Product') }}</span>
+                </div>
+                <p class="mb-2">"{{ review.comment|default('Very happy with this purchase. The quality is excellent and it works perfectly.') }}"</p>
+                <p class="text-muted small mb-0">- {{ review.author|default('Rajesh Kumar') }}, {{ review.date|default('2 days ago') }}</p>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="border-top pt-3">
+              <div class="d-flex mb-2">
+                <div class="text-warning small">
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                </div>
+                <span class="ms-2 fw-bold">Excellent Product</span>
+              </div>
+              <p class="mb-2">"Very happy with this purchase. The quality is excellent and it works perfectly."</p>
+              <p class="text-muted small mb-0">- Rajesh Kumar, 2 days ago</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  .breadcrumb-item a {
+    text-decoration: none;
+    color: #6c757d;
+  }
+  
+  .breadcrumb-item.active {
+    color: #212529;
+    font-weight: 500;
+  }
+  
+  .product-image-container {
+    position: relative;
+  }
+  
+  .thumbnail {
+    transition: all 0.2s ease;
+    border: 2px solid transparent !important;
+  }
+  
+  .thumbnail:hover {
+    border-color: #0d6efd !important;
+  }
+  
+  .thumbnail.active {
+    border-color: #0d6efd !important;
+  }
+  
+  .nav-tabs .nav-link {
+    color: #6c757d;
+    font-weight: 500;
+    border: none;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom: 3px solid #0d6efd;
+    background-color: transparent;
+  }
+  
+  .tab-content {
+    background-color: #f8f9fa;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.75rem;
+    }
+    
+    .thumbnail-images {
+      flex-wrap: wrap;
+    }
+    
+    .nav-tabs .nav-link {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+  }
+</style>
+
+<script>
+  // Simple image changer
+  function changeImage(src, element) {
+    document.getElementById('mainImage').src = src;
+    
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail').forEach(thumb => {
+      thumb.classList.remove('active');
+    });
+    element.closest('.thumbnail').classList.add('active');
+  }
+  
+  // Quantity update
+  function updateQuantity(change) {
+    const quantityInput = document.getElementById('quantity');
+    let currentValue = parseInt(quantityInput.value) || 1;
+    currentValue += change;
+    
+    if (currentValue < 1) currentValue = 1;
+    if (currentValue > 10) currentValue = 10;
+    
+    quantityInput.value = currentValue;
+  }
+</script>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+{% endblock %}

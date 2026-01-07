@@ -1,0 +1,340 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login | MyShop{% endblock %}
+
+{% block body %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="bg-light py-3">
+  <div class="container">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Login</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center">
+    <!-- Left Column - Illustration (Hidden on mobile) -->
+    <div class="col-lg-6 d-none d-lg-block">
+      <div class="text-center">
+        <img src="https://images.unsplash.com/photo-1556742031-c6961e8560b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+             class="img-fluid rounded-3 shadow-sm" 
+             alt="Login Illustration">
+        <div class="mt-4">
+          <h4 class="fw-bold">Welcome Back!</h4>
+          <p class="text-muted">Sign in to access your account, view orders, and manage wishlist.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Column - Login Form -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4 p-md-5">
+          <!-- Header -->
+          <div class="text-center mb-4">
+            <div class="logo-icon d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" 
+                 style="width: 60px; height: 60px;">
+              <i class="bi bi-person fs-3"></i>
+            </div>
+            <h2 class="fw-bold">Sign In</h2>
+            <p class="text-muted">Enter your credentials to continue</p>
+          </div>
+          
+          <!-- Flash Messages -->
+          {% if error|default(false) %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              {{ error }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endif %}
+          
+          {% if success|default(false) %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="bi bi-check-circle me-2"></i>
+              {{ success }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endif %}
+
+          <!-- Login Form -->
+          <form method="post" action="{{ path('app_login') }}">
+            <!-- Email -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                  <i class="bi bi-envelope text-muted"></i>
+                </span>
+                <input type="email" 
+                       name="email" 
+                       class="form-control border-start-0" 
+                       placeholder="Enter your email"
+                       value="{{ last_username|default('') }}"
+                       required
+                       autofocus>
+              </div>
+              <div class="form-text">We'll never share your email with anyone else.</div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">Password</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                  <i class="bi bi-lock text-muted"></i>
+                </span>
+                <input type="password" 
+                       name="password" 
+                       class="form-control border-start-0" 
+                       placeholder="Enter your password"
+                       id="password"
+                       required>
+                <button class="btn btn-outline-secondary border-start-0" 
+                        type="button" 
+                        onclick="togglePassword()">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="_remember_me" id="remember">
+                  <label class="form-check-label small" for="remember">
+                    Remember me
+                  </label>
+                </div>
+                <a href="#" class="small text-decoration-none">
+                  Forgot password?
+                </a>
+              </div>
+            </div>
+
+            <!-- CSRF Token (if using Symfony security) -->
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="position-relative my-4">
+            <hr>
+            <div class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">
+              Or continue with
+            </div>
+          </div>
+
+          <!-- Social Login -->
+          <div class="row g-2 mb-4">
+            <div class="col-6">
+              <button type="button" class="btn btn-outline-dark w-100">
+                <i class="bi bi-google me-2"></i>Google
+              </button>
+            </div>
+            <div class="col-6">
+              <button type="button" class="btn btn-outline-primary w-100">
+                <i class="bi bi-facebook me-2"></i>Facebook
+              </button>
+            </div>
+          </div>
+
+          <!-- Register Link -->
+          <div class="text-center pt-3 border-top">
+            <p class="text-muted mb-0">Don't have an account?
+              <a href="{{ path('app_register') }}" class="text-decoration-none fw-bold">
+                Create one now
+              </a>
+            </p>
+            <a href="/" class="btn btn-link text-decoration-none mt-3">
+              <i class="bi bi-arrow-left me-1"></i>Back to Home
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Additional Info -->
+      <div class="text-center mt-4">
+        <div class="d-flex justify-content-center gap-4">
+          <div class="d-flex align-items-center text-muted small">
+            <i class="bi bi-shield-check text-success me-2"></i>
+            <span>Secure Login</span>
+          </div>
+          <div class="d-flex align-items-center text-muted small">
+            <i class="bi bi-clock-history text-primary me-2"></i>
+            <span>24/7 Support</span>
+          </div>
+          <div class="d-flex align-items-center text-muted small">
+            <i class="bi bi-award text-warning me-2"></i>
+            <span>Trusted Store</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  .breadcrumb-item a {
+    text-decoration: none;
+    color: #6c757d;
+  }
+  
+  .breadcrumb-item.active {
+    color: #212529;
+    font-weight: 500;
+  }
+  
+  .card {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .logo-icon {
+    transition: transform 0.3s ease;
+  }
+  
+  .logo-icon:hover {
+    transform: scale(1.05);
+  }
+  
+  .input-group-text {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+  }
+  
+.form-control {
+  color: #212529 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #ced4da !important;   
+  opacity: 1 !important;
+}
+
+.form-control::placeholder {
+  color: #6c757d !important;
+  opacity: 1;
+}
+
+.form-control:focus {
+  color: #212529 !important;
+  background-color: #ffffff !important;
+  border-color: #0d6efd !important;      
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25) !important;
+}
+
+.input-group-text {
+  background-color: #f8f9fa !important;
+  border: 1px solid #ced4da !important;
+  color: #212529 !important;
+}
+
+.input-group .form-control {
+  border-left: 0 !important;
+}
+
+
+.input-group .btn {
+  border: 1px solid #ced4da !important;
+  border-left: 0 !important;
+}
+
+
+.input-group-text {
+  color: #212529 !important;
+}
+  
+  .btn-primary {
+    padding: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  /* Social buttons */
+  .btn-outline-dark:hover {
+    background-color: #212529;
+    color: white;
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: white;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 2rem !important;
+    }
+    
+    .d-flex.justify-content-center.gap-4 {
+      flex-direction: column;
+      gap: 1rem !important;
+    }
+    
+    h2 {
+      font-size: 1.75rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .card-body {
+      padding: 1.5rem !important;
+    }
+    
+    .row.g-2.mb-4 {
+      flex-direction: column;
+    }
+    
+    .row.g-2.mb-4 .col-6 {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  // Toggle password visibility
+  function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleButton = event.currentTarget;
+    const icon = toggleButton.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    }
+  }
+  
+  // Auto focus email field
+  document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.querySelector('input[name="email"]');
+    if (emailInput && !emailInput.value) {
+      emailInput.focus();
+    }
+  });
+</script>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+{% endblock %}
